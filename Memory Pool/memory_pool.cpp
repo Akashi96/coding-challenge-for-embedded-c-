@@ -20,10 +20,10 @@ int main()
 	freelist<int> free(Head, count, block_size);
 
 	// CREATION OF OBJECT TO BE PLACED IN THE MEMORY POOL
-	blockElement<int> *obj = new(free.list.top()) blockElement<int>(free);
+	blockElement<int> *obj = new(free.list.top()) blockElement<int>(free); // use of placement new to allocate the block at the address pointed by free.list.top() and call the constructor for blockElement
 
 	// RELEASE ELEMENT FROM MEMORY POOL
-	obj->memory_pool_release(obj, free);
+	// obj->memory_pool_release(obj, free);
 
 	// SIZE OF MEMORY POOL AVAILABLE
 	// std::cout << "Memory Pool contains space for "<< memory_pool_available(free) << "Element Blocks\n";

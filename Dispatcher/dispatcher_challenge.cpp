@@ -85,6 +85,10 @@ public:
     // dtor - need impl
     virtual ~CommandDispatcher()
     {
+    	// It would avoid memory leaks. 
+    	// It will be more useful if in future we need to inherit a derived class as
+    	// it will ensure proper destructor sequence call we must make the base destructor virtual. 
+    	// This ensures dynamic/runtime binding of the destructor
         // question why is it virtual? Is it needed in this case?
     }
 
