@@ -1,5 +1,3 @@
-#ifndef MEMORY_POOL_H_INCLUDED
-#define MEMORY_POOL_H_INCLUDED
 /*
  * author: iancain
  * date: 10/1/2018
@@ -16,75 +14,43 @@
     stack object to manage memory blocks
        acquire = pop_front  (acquire block off the front/top of stack)
        release = push_back  (release block by putting on back/bottom of stack)
-*/
+ */
 
-
+#include <stack>
 #include <stdlib.h>
 #include <stdbool.h>   // NOTE: c99 bool requires #include <stdbool.h>
-#include <cstddef>
 
+typedef struct memory_pool
+{
+  void* Head, *free_ptr_at_top;   // Head points to the start of memory_pool; free_ptr_at_top points to the top of free_list stack
+  int sizeof_pool;                // Contains the information about size of pool
+  int block_available;            // Contains the information about number of block available to be allocated to the memory_pool
+} memory_pool_t;
 
 template <typename Type>
-class freelist  // This class's object will maintain a stack containing the pointers to the free memory locations in the memory_pool
+class freelist
 {
-public:
-  std::stack<Type*> list;
-  freelist(void* Head, size_t count, size_t block_size)
+  public:
+  std::stack<Type*> list; // Define a stack to maintain freelist
+  freelist(memory_pool_t* mempool)
   {
-    for(size_t i = 0 ; i < count; i++)
+    for(size_t i = 0 ; i < mempool -> block_available; i++)
     { 
-      list.push((Type*)Head + block_size * i);  // It is assumed that the all the allocations in the memory_pool will be of same size. Therefore, if the Head pointer
-                                                // points to the start of pool, every new location should lie at block_size * i distance from it.
+      std::cout << (void*)((Type*)mempool -> Head + sizeof(Type) * i) << std::endl;
+      list.push((Type*)mempool -> Head + sizeof(Type) * i);  // It is assumed that the all the allocations in the memory_pool will be of same size. Therefore, if the Head pointer
+                                                             // points to the start of pool, every new location should lie at block_size * i distance from it.
     }
 
   }
 };
 
-template <typename Type>
-class BlockElement // This class's object represent the actual block that is gonna be allocated the space using memory_pool
-{
-  Type value; // The value stored within the block. The template allows the user to define a block of any type
-public:
-  blockElement(freelist<Type>& free)  // Constructor
-  {
-    free.list.pop();  // Since we've used the free space, its entry should be removed from the top of the stack.
-    std::cout << "Enter the value for Block-Element";
-    std::cin >> value;
-  }
- 
-};
 
-void * memory_pool_init(size_t count, size_t block_size)
-{
-  return (void*) malloc(count* block_size); // Create a memory_pool of size count*block_size and return the void* pointer to the start of that memory pool
-}
+memory_pool_t * memory_pool_init(size_t count, size_t block_size);
+bool memory_pool_destroy(memory_pool_t *mp);
 
- // bool memory_pool_release(blockElement<Type>* obj, freelist<Type>& free)
- //  {
- //    free.list.push(*obj);
- //    // obj.~blockElement;
- //  }
-
-// template <typename Type>
-// bool memory_pool_destroy(void** mp, freelist<Type>& list)
-// {
-//   free(*mp);
-//   *mp = NULL;
-//   list.~freelist();
-// }
-
-
-
-
-// void * memory_pool_acquire(memory_pool_t *mp); 
-//  We don't need the memory_pool_acquire() this is because, placement new operator is used to allocate the block at the specified location on the memory pool only
+void * memory_pool_acquire(memory_pool_t *mp);
+bool memory_pool_release(memory_pool_t *mp, void * data);
 
 // convenience functions
-// template <typename Type>
-// size_t memory_pool_available(freelist<Type>& free)
-// {
-//   return free.list.size();
-// }
-// void memory_pool_dump(memory_pool_t *mp);
-
-#endif // MEMORY_POOL_H_INCLUDED
+size_t memory_pool_available(memory_pool_t *mp);
+  void memory_pool_dump(memory_pool_t *mp);
